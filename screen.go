@@ -1,12 +1,12 @@
 package main
 
-import "github.com/gizak/termui"
+import t "github.com/gizak/termui"
 
 // Screen is an abstration of the terminal's screen
 type Screen struct {
 	isMenuVisible bool
-	menu          termui.Bufferer
-	buff          []termui.Bufferer
+	menu          t.Bufferer
+	buff          []t.Bufferer
 }
 
 // NewScreen returns an empty Screen
@@ -15,13 +15,13 @@ func NewScreen() *Screen {
 }
 
 // SetMenu sets the menu of the screen(\game)
-func (s *Screen) SetMenu(menu termui.Bufferer) {
-	s.isMenuVisible = true
+func (s *Screen) SetMenu(menu t.Bufferer) {
+	s.isMenuVisible = false
 	s.menu = menu
 }
 
 // Add adds elements to the screen
-func (s *Screen) Add(t ...termui.Bufferer) {
+func (s *Screen) Add(t ...t.Bufferer) {
 	s.buff = append(s.buff, t...)
 }
 
@@ -32,10 +32,10 @@ func (s *Screen) Remove(elPos int) {
 
 // Render the screen
 func (s *Screen) Render() {
-	termui.Clear()
-	termui.Render(s.buff...)
+	t.Clear()
+	t.Render(s.buff...)
 	if s.isMenuVisible {
-		termui.Render(s.menu)
+		t.Render(s.menu)
 	}
 }
 
@@ -49,4 +49,37 @@ func (s *Screen) ShowMenu() {
 func (s *Screen) RemoveMenu() {
 	s.isMenuVisible = false
 	s.Render()
+}
+
+// Coord is a simple coordinate structure
+type Coord struct {
+	X, Y int
+}
+
+// Point is a point on the arena
+type Point struct {
+	Coord
+	t.Cell
+}
+
+// MoveTo moves the Point to a new location
+// Unsafe method. Use MoveBy instead.
+func (p *Point) moveTo(x, y int, a *Arena) {
+	a.SetCoord(p.Coord, DefaultCell)
+	p.X = x
+	p.Y = y
+	a.SetCoord(p.Coord, p.Cell)
+}
+
+// MoveBy moves the poin by amount on X and Y axis,
+// If it's beyond the arena bounds, it starts from 0
+func (p *Point) MoveBy(dX, dY int, a *Arena) {
+	x, y := (p.X+dX)%a.Width, (p.Y+dY)%a.Height
+	if x < 0 {
+		x = a.Width + x
+	}
+	if y < 0 {
+		y = a.Height + y
+	}
+	p.moveTo(x, y, a)
 }

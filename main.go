@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"time"
 
@@ -8,8 +9,16 @@ import (
 )
 
 const (
-	turnStr = "100ms"
-	turn    = 100
+	// turn duration in milliseconds
+	turn = 300
+)
+
+// Snake's direction
+const (
+	UP int = iota
+	DOWN
+	LEFT
+	RIGHT
 )
 
 func main() {
@@ -19,17 +28,36 @@ func main() {
 	}
 	defer termui.Close()
 
-	b := termui.NewPar("")
-	b.Height = 5
-	b.Width = 5
-	b.TextFgColor = termui.ColorWhite
-	b.BorderLabel = ""
-	b.BorderFg = termui.ColorCyan
-
 	screen := NewScreen()
 	screen.SetMenu(buildMenu())
-	screen.Add(b)
+
+	arena := NewArena(20, 5)
+	arena.X = 2
+	arena.Y = 2
+	arena.BorderBg = termui.ColorCyan
+
+	arena.Set(0, 2, termui.Cell{Ch: ':'})
+	arena.Set(1, 2, termui.Cell{Ch: ')'})
+
+	screen.Add(arena)
+	p := &Point{
+		Coord: Coord{X: 0, Y: 0},
+		Cell: termui.Cell{
+			Ch: '█',
+			Fg: termui.ColorYellow,
+		},
+	}
+	p2 := &Point{
+		Coord: Coord{X: 0, Y: 1},
+		Cell: termui.Cell{
+			Ch: '█',
+			Fg: termui.ColorYellow,
+		},
+	}
+	arena.SetCoord(p.Coord, p.Cell)
+	arena.SetCoord(p2.Coord, p2.Cell)
 	screen.Render()
+	direction := DOWN
 
 	// handle key q pressing
 	termui.Handle("/sys/kbd/q", func(termui.Event) {
@@ -46,20 +74,16 @@ func main() {
 	})
 
 	termui.Handle("/sys/kbd/<up>", func(termui.Event) {
-		b.Y--
-		screen.Render()
+		direction = UP
 	})
 	termui.Handle("/sys/kbd/<down>", func(termui.Event) {
-		b.Y++
-		screen.Render()
+		direction = DOWN
 	})
 	termui.Handle("/sys/kbd/<left>", func(termui.Event) {
-		b.X--
-		screen.Render()
+		direction = LEFT
 	})
 	termui.Handle("/sys/kbd/<right>", func(termui.Event) {
-		b.X++
-		screen.Render()
+		direction = RIGHT
 	})
 
 	termui.Handle("/sys/kbd", func(termui.Event) {
@@ -69,9 +93,23 @@ func main() {
 	// handle a turn
 	// Register a timer whose path is /timer/XXXms and then handle it
 	// !!! Due to NewTimerCh implementations, all timers MUST have /timer/XXX path
-	termui.Merge("/timer/"+turnStr, termui.NewTimerCh(turn*time.Millisecond))
-	termui.Handle("/timer/"+turnStr, func(e termui.Event) {
-		b.X++
+	turnStr := fmt.Sprintf("/timer/%dms", turn)
+	termui.Merge(turnStr, termui.NewTimerCh(turn*time.Millisecond))
+	termui.Handle(turnStr, func(e termui.Event) {
+		switch direction {
+		case UP:
+			p2.MoveBy(0, -1, arena)
+			p.MoveBy(0, -1, arena)
+		case DOWN:
+			p2.MoveBy(0, 1, arena)
+			p.MoveBy(0, 1, arena)
+		case LEFT:
+			p2.MoveBy(-1, 0, arena)
+			p.MoveBy(-1, 0, arena)
+		case RIGHT:
+			p2.MoveBy(1, 0, arena)
+			p.MoveBy(1, 0, arena)
+		}
 		screen.Render()
 	})
 
