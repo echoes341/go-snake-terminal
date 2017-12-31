@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/gizak/termui"
@@ -16,6 +17,7 @@ const (
 
 const (
 	initDuration = 400
+	minDuration  = 200
 )
 
 // Game is general game struct
@@ -75,7 +77,7 @@ func (g *Game) begin() {
 	/* test box */
 	b := termui.NewPar("")
 	b.Height = 5
-	b.Width = 5
+	b.Width = 30
 	b.TextFgColor = termui.ColorWhite
 	b.BorderLabel = ""
 	b.BorderFg = termui.ColorCyan
@@ -101,6 +103,15 @@ func (g *Game) begin() {
 			termui.Clear()
 			b.X = (b.X + 1) % termui.TermWidth()
 
+			t := e.Data.(termui.EvtTimer)
+			// t is a EvtTimer
+			if t.Count%2 == 0 {
+				g.score = g.score + 50
+				if b.X == 0 {
+					g.score = 0
+				}
+				b.Text = fmt.Sprintf("score: %d", g.score)
+			}
 			termui.Render(b)
 		}
 		g.Render()
@@ -108,10 +119,6 @@ func (g *Game) begin() {
 
 	termui.Clear()
 	g.Render()
-}
-
-func (g *Game) startTimeCounter() {
-	termui.Merge("/timer/turn", g.turnTimer())
 }
 
 func initialArena() *Arena {
@@ -172,6 +179,10 @@ func (g *Game) initHandles() {
 
 }
 
+func (g *Game) startTimeCounter() {
+	termui.Merge("/timer/turn", g.turnTimer())
+}
+
 // This is a timer that sends an event every X time
 // based on actual score
 func (g *Game) turnTimer() chan termui.Event {
@@ -180,10 +191,9 @@ func (g *Game) turnTimer() chan termui.Event {
 		n := uint64(0)
 		for {
 			var ms int
-			if g.score > 100 {
-				ms = initDuration - 100
-			} else {
-				ms = initDuration - g.score
+			ms = initDuration - g.score
+			if ms < minDuration {
+				ms = minDuration
 			}
 			du := time.Duration(ms) * time.Millisecond
 			n++
