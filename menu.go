@@ -5,7 +5,6 @@ import "github.com/gizak/termui"
 // Menu is a menu of the game
 type Menu struct {
 	*termui.Table
-	IsVisible bool
 }
 
 func initialMenu() *Menu {
@@ -39,8 +38,7 @@ func initialMenu() *Menu {
 	menu.Float = termui.AlignCenter
 	menu.Border = true
 	return &Menu{
-		Table:     menu,
-		IsVisible: true,
+		Table: menu,
 	}
 }
 
@@ -59,7 +57,7 @@ func (m *Menu) setPauseMenu() {
 		[]string{""},
 		[]string{" • n to restart the game"},
 		[]string{""},
-		[]string{" • p againg to resume the game"},
+		[]string{" • p again to resume the game"},
 		[]string{""},
 		[]string{" • q to quit"},
 		[]string{""},

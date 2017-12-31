@@ -6,11 +6,6 @@ import (
 	"github.com/gizak/termui"
 )
 
-const (
-	// turn duration in milliseconds
-	turn = 300
-)
-
 // Snake's direction
 
 func main() {
@@ -23,6 +18,5 @@ func main() {
 	g := NewGame()
 	// At start the game is paused and shows the menu
 	g.Start()
-
 	termui.Loop() // block until StopLoop is called
 }

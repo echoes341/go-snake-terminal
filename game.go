@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"github.com/gizak/termui"
 )
 
@@ -12,20 +14,26 @@ const (
 	RIGHT
 )
 
+const (
+	initDuration = 400
+)
+
 // Game is general game struct
 type Game struct {
-	score  int
-	arena  *Arena
-	IsOver bool
-	menu   *Menu
+	score    int
+	arena    *Arena
+	IsOver   bool
+	IsPaused bool
+	menu     *Menu
 }
 
 // NewGame returns a new game
 func NewGame() *Game {
 	return &Game{
-		arena: initialArena(),
-		score: initialScore(),
-		menu:  initialMenu(),
+		arena:    initialArena(),
+		score:    0,
+		menu:     initialMenu(),
+		IsPaused: true,
 	}
 }
 
@@ -36,7 +44,7 @@ func (g *Game) Clear() {
 
 // Render renders the scene
 func (g *Game) Render() {
-	if g.menu.IsVisible {
+	if g.IsPaused {
 		termui.Render(g.menu)
 	} else {
 		termui.Render( /*g.arena*/ )
@@ -53,6 +61,7 @@ func (g *Game) Start() {
 		termui.StopLoop()
 	})
 
+	g.startTimeCounter() // don't put this inside a handle
 	termui.Handle("/sys/kbd/<enter>", func(termui.Event) {
 		g.begin()
 	})
@@ -60,8 +69,16 @@ func (g *Game) Start() {
 
 func (g *Game) begin() {
 	// change menu
-	g.menu.IsVisible = false
+	g.IsPaused = false
 	g.menu.setPauseMenu()
+
+	/* test box */
+	b := termui.NewPar("")
+	b.Height = 5
+	b.Width = 5
+	b.TextFgColor = termui.ColorWhite
+	b.BorderLabel = ""
+	b.BorderFg = termui.ColorCyan
 
 	// Set new handlers
 	termui.ResetHandlers()
@@ -70,15 +87,31 @@ func (g *Game) begin() {
 		termui.StopLoop()
 	})
 	termui.Handle("/sys/kbd/p", func(termui.Event) {
-		g.menu.IsVisible = !g.menu.IsVisible
-		termui.Clear()
+		g.IsPaused = !g.IsPaused
+
+		if !g.IsPaused {
+			termui.Clear()
+			termui.Render(b)
+		}
 		g.Render()
 	})
-	// termui.Handle()
+
+	termui.Handle("/timer/turn", func(e termui.Event) {
+		if g.IsPaused == false { //game is not paused
+			termui.Clear()
+			b.X = (b.X + 1) % termui.TermWidth()
+
+			termui.Render(b)
+		}
+		g.Render()
+	})
+
 	termui.Clear()
 	g.Render()
-	//g.Render()
+}
 
+func (g *Game) startTimeCounter() {
+	termui.Merge("/timer/turn", g.turnTimer())
 }
 
 func initialArena() *Arena {
@@ -87,10 +120,6 @@ func initialArena() *Arena {
 	arena.Y = 2
 	arena.BorderBg = termui.ColorCyan
 	return arena
-}
-
-func initialScore() int {
-	return 0
 }
 
 func (g *Game) initHandles() {
@@ -121,9 +150,9 @@ func (g *Game) initHandles() {
 	// handle a turn
 	// Register a timer whose path is /timer/XXXms and then handle it
 	// !!! Due to NewTimerCh implementations, all timers MUST have /timer/XXX path
-	/* turnStr := fmt.Sprintf("/timer/%dms", turn)
-	termui.Merge(turnStr, termui.NewTimerCh(turn*time.Millisecond))
-	termui.Handle(turnStr, func(e termui.Event) {
+	/*turnStr := fmt.Sprintf("/timer/%dms", initDuration)
+	termui.Merge(turnStr, termui.NewTimerCh(initDuration*time.Millisecond))
+	/*termui.Handle(turnStr, func(e termui.Event) {
 		switch direction {
 		case UP:
 			p2.MoveBy(0, -1, arena)
@@ -141,4 +170,35 @@ func (g *Game) initHandles() {
 		g.Render()
 	}) */
 
+}
+
+// This is a timer that sends an event every X time
+// based on actual score
+func (g *Game) turnTimer() chan termui.Event {
+	t := make(chan termui.Event)
+	go func(a chan termui.Event) {
+		n := uint64(0)
+		for {
+			var ms int
+			if g.score > 100 {
+				ms = initDuration - 100
+			} else {
+				ms = initDuration - g.score
+			}
+			du := time.Duration(ms) * time.Millisecond
+			n++
+			time.Sleep(du)
+			e := termui.Event{}
+			e.Type = "timer"
+			e.Path = "/timer/turn"
+			e.Time = time.Now().Unix()
+			e.Data = termui.EvtTimer{
+				Duration: du,
+				Count:    n,
+			}
+			t <- e
+
+		}
+	}(t)
+	return t
 }
