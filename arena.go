@@ -9,6 +9,7 @@ type Arena struct {
 	t.Block
 	Width, Height int
 	snake         *snake
+	init          bool
 }
 
 // DefaultCell of arena table
@@ -17,51 +18,17 @@ var DefaultCell = t.Cell{
 }
 
 // NewArena returns an empty Arena
-func NewArena(width, height int) *Arena {
+func NewArena(s *snake, width, height int) *Arena {
 	a := &Arena{
 		Block:  *t.NewBlock(),
 		Width:  width,
 		Height: height,
+		init:   true,
+		snake:  s,
 	}
-	a.Clear()
 	a.Block.Width = width + 2
 	a.Block.Height = height + 2
 	return a
-}
-
-func newArenaGrid(w, h int) [][]t.Cell {
-	grid := make([][]t.Cell, w)
-	for k := range grid {
-		grid[k] = make([]t.Cell, h)
-		for j := range grid[k] {
-			grid[k][j] = DefaultCell
-		}
-	}
-	return grid
-}
-
-// Clear clears inner grid
-func (a *Arena) Clear() {
-	a.Grid = newArenaGrid(a.Width, a.Height)
-}
-
-// SetAll sets all the cells of a Arena the same c t.Cell
-func (a *Arena) SetAll(c t.Cell) {
-	for i := range a.Grid {
-		for j := range a.Grid[i] {
-			a.Grid[i][j] = c
-		}
-	}
-}
-
-// Set sets a cell of the Arena
-func (a *Arena) Set(x, y int, c t.Cell) {
-	a.Grid[x][y] = c
-}
-
-// SetCoord sets a cell of the Arena by coordinates
-func (a *Arena) SetCoord(c Coord, cell t.Cell) {
-	a.Set(c.X, c.Y, cell)
 }
 
 // Buffer implements Bufferer interface.
@@ -69,10 +36,23 @@ func (a *Arena) SetCoord(c Coord, cell t.Cell) {
 func (a *Arena) Buffer() t.Buffer {
 	// Followind similar approach as in the termui source code
 	buf := a.Block.Buffer()
-	for y := 0; y < a.InnerHeight(); y++ {
-		for x := 0; x < a.InnerWidth(); x++ {
-			buf.Set(a.InnerX()+x, a.InnerY()+y, a.Grid[x][y])
+
+	if a.init {
+		for y := 0; y < a.InnerHeight(); y++ {
+			for x := 0; x < a.InnerWidth(); x++ {
+				buf.Set(a.InnerX()+x, a.InnerY()+y, DefaultCell)
+			}
 		}
+		a.init = false
+	} else {
+		//print snake
+		for b := 0; b < a.snake.length; b++ {
+			buf.Set(a.InnerX()+a.snake.body[b].X, a.InnerY()+a.snake.body[b].Y, a.snake.cell)
+		}
+
+		//set where the tail was to a defaul cell
+		buf.Set(a.InnerX()+a.snake.last.X, a.InnerY()+a.snake.last.Y, DefaultCell)
 	}
+
 	return buf
 }

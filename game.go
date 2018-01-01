@@ -43,7 +43,7 @@ func (g *Game) Render() {
 	if g.IsPaused {
 		termui.Render(g.menu)
 	} else {
-		termui.Render( /*g.arena*/ )
+		termui.Render(g.arena)
 	}
 }
 
@@ -116,11 +116,20 @@ func (g *Game) begin() {
 }
 
 func initialArena() *Arena {
-	arena := NewArena(20, 20)
+	arena := NewArena(initialSnake(), 20, 20)
 	arena.X = 2
 	arena.Y = 2
 	arena.BorderBg = termui.ColorCyan
 	return arena
+}
+
+func initialSnake() *snake {
+	return newSnake(RIGHT, []Coord{
+		Coord{X: 1, Y: 1},
+		Coord{X: 1, Y: 2},
+		Coord{X: 1, Y: 3},
+		Coord{X: 1, Y: 4},
+	})
 }
 
 func (g *Game) initHandles() {
