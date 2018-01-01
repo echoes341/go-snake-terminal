@@ -8,7 +8,7 @@ import (
 type Arena struct {
 	t.Block
 	Width, Height int
-	Grid          [][]t.Cell
+	snake         *snake
 }
 
 // DefaultCell of arena table
@@ -22,7 +22,6 @@ func NewArena(width, height int) *Arena {
 		Block:  *t.NewBlock(),
 		Width:  width,
 		Height: height,
-		Grid:   newArenaGrid(width, height),
 	}
 	a.Clear()
 	a.Block.Width = width + 2

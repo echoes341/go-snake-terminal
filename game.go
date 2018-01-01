@@ -8,12 +8,6 @@ import (
 )
 
 // snake directions
-const (
-	UP int = iota
-	DOWN
-	LEFT
-	RIGHT
-)
 
 const (
 	initDuration = 400
