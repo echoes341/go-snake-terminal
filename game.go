@@ -16,20 +16,22 @@ const (
 
 // Game is general game struct
 type Game struct {
-	score    int
-	arena    *Arena
-	IsOver   bool
-	IsPaused bool
-	menu     *Menu
+	score        int
+	scoreDisplay *termui.Par
+	arena        *Arena
+	IsOver       bool
+	IsPaused     bool
+	menu         *Menu
 }
 
 // NewGame returns a new game
 func NewGame() *Game {
 	return &Game{
-		arena:    initialArena(),
-		score:    0,
-		menu:     initialMenu(),
-		IsPaused: true,
+		arena:        initialArena(),
+		score:        0,
+		scoreDisplay: initialScoreDisp(),
+		menu:         initialMenu(),
+		IsPaused:     true,
 	}
 }
 
@@ -43,7 +45,9 @@ func (g *Game) Render() {
 	if g.IsPaused {
 		termui.Render(g.menu)
 	} else {
-		termui.Render(g.arena)
+		// update score text
+		g.scoreDisplay.Text = fmt.Sprintf("~~~ GO SNAKE! ~~~\n\nScore: %d", g.score)
+		termui.Render(g.arena, g.scoreDisplay)
 	}
 }
 
@@ -68,14 +72,6 @@ func (g *Game) begin() {
 	g.IsPaused = false
 	g.menu.setPauseMenu()
 
-	/* test box */
-	b := termui.NewPar("")
-	b.Height = 5
-	b.Width = 30
-	b.TextFgColor = termui.ColorWhite
-	b.BorderLabel = ""
-	b.BorderFg = termui.ColorCyan
-
 	// Set new handlers
 	termui.ResetHandlers()
 	termui.Handle("/sys/kbd/q", func(termui.Event) {
@@ -87,26 +83,28 @@ func (g *Game) begin() {
 
 		if !g.IsPaused {
 			termui.Clear()
-			termui.Render(b)
 		}
 		g.Render()
+	})
+
+	termui.Handle("/sys/kbd/<up>", func(termui.Event) {
+		g.arena.snake.changeDirection(UP)
+	})
+	termui.Handle("/sys/kbd/<down>", func(termui.Event) {
+		g.arena.snake.changeDirection(DOWN)
+	})
+	termui.Handle("/sys/kbd/<left>", func(termui.Event) {
+		g.arena.snake.changeDirection(LEFT)
+	})
+	termui.Handle("/sys/kbd/<right>", func(termui.Event) {
+		g.arena.snake.changeDirection(RIGHT)
 	})
 
 	termui.Handle("/timer/turn", func(e termui.Event) {
 		if g.IsPaused == false { //game is not paused
 			termui.Clear()
-			b.X = (b.X + 1) % termui.TermWidth()
-
-			t := e.Data.(termui.EvtTimer)
-			// t is a EvtTimer
-			if t.Count%2 == 0 {
-				g.score = g.score + 50
-				if b.X == 0 {
-					g.score = 0
-				}
-				b.Text = fmt.Sprintf("score: %d", g.score)
-			}
-			termui.Render(b)
+			// GAME TURN IS HERE
+			g.arena.safeMove()
 		}
 		g.Render()
 	})
@@ -116,7 +114,7 @@ func (g *Game) begin() {
 }
 
 func initialArena() *Arena {
-	arena := NewArena(initialSnake(), 20, 20)
+	arena := NewArena(initialSnake(), 22, 20)
 	arena.X = 2
 	arena.Y = 2
 	arena.BorderBg = termui.ColorCyan
@@ -130,6 +128,18 @@ func initialSnake() *snake {
 		Coord{X: 1, Y: 3},
 		Coord{X: 1, Y: 4},
 	})
+}
+
+func initialScoreDisp() *termui.Par {
+	b := termui.NewPar("~~~ GO SNAKE! ~~~\n\nScore: 0")
+	b.Height = 22
+	b.Width = 19
+	b.X = 26
+	b.Y = 2
+	b.TextFgColor = termui.ColorWhite
+	b.BorderLabel = ""
+	b.BorderFg = termui.ColorCyan
+	return b
 }
 
 func (g *Game) initHandles() {

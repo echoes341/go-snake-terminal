@@ -56,3 +56,22 @@ func (a *Arena) Buffer() t.Buffer {
 
 	return buf
 }
+
+func (a *Arena) safeMove() error {
+	err := a.snake.move()
+	h, pos := a.snake.head()
+	x := h.X
+	y := h.Y
+	x = x % a.Width
+	y = y % a.Height
+
+	if x < 0 {
+		x = a.Width - 1
+	}
+	if y < 0 {
+		y = a.Height - 1
+	}
+
+	a.snake.body[pos] = Coord{X: x, Y: y}
+	return err
+}
