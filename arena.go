@@ -49,29 +49,36 @@ func (a *Arena) Buffer() t.Buffer {
 		for b := 0; b < a.snake.length; b++ {
 			buf.Set(a.InnerX()+a.snake.body[b].X, a.InnerY()+a.snake.body[b].Y, a.snake.cell)
 		}
-
-		//set where the tail was to a defaul cell
-		buf.Set(a.InnerX()+a.snake.last.X, a.InnerY()+a.snake.last.Y, DefaultCell)
 	}
 
 	return buf
 }
 
-func (a *Arena) safeMove() error {
-	err := a.snake.move()
-	h, pos := a.snake.head()
+func (a *Arena) moveSnake() error {
+	s := a.snake
+	h := s.head()
 	x := h.X
 	y := h.Y
-	x = x % a.Width
-	y = y % a.Height
 
-	if x < 0 {
-		x = a.Width - 1
-	}
-	if y < 0 {
-		y = a.Height - 1
+	switch s.direction {
+	case RIGHT:
+		x++
+		x = x % a.Width
+	case LEFT:
+		x--
+		if x < 0 {
+			x = a.Width - 1
+		}
+	case UP:
+		y--
+		if y < 0 {
+			y = a.Height - 1
+		}
+	case DOWN:
+		y++
+		y = y % a.Height
 	}
 
-	a.snake.body[pos] = Coord{X: x, Y: y}
-	return err
+	s.body = append(s.body[1:], Coord{X: x, Y: y})
+	return nil
 }

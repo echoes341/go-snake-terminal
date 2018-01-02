@@ -104,7 +104,7 @@ func (g *Game) begin() {
 		if g.IsPaused == false { //game is not paused
 			termui.Clear()
 			// GAME TURN IS HERE
-			g.arena.safeMove()
+			g.arena.moveSnake()
 		}
 		g.Render()
 	})
@@ -123,10 +123,10 @@ func initialArena() *Arena {
 
 func initialSnake() *snake {
 	return newSnake(RIGHT, []Coord{
-		Coord{X: 1, Y: 1},
-		Coord{X: 1, Y: 2},
-		Coord{X: 1, Y: 3},
 		Coord{X: 1, Y: 4},
+		Coord{X: 1, Y: 3},
+		Coord{X: 1, Y: 2},
+		Coord{X: 1, Y: 1},
 	})
 }
 
@@ -140,56 +140,6 @@ func initialScoreDisp() *termui.Par {
 	b.BorderLabel = ""
 	b.BorderFg = termui.ColorCyan
 	return b
-}
-
-func (g *Game) initHandles() {
-	// handle key q pressing
-
-	/*
-		termui.Handle("/sys/kbd/h", func(termui.Event) {
-			g.ShowMenu()
-		})
-
-		termui.Handle("/sys/kbd/<up>", func(termui.Event) {
-			direction = UP
-		})
-		termui.Handle("/sys/kbd/<down>", func(termui.Event) {
-			direction = DOWN
-		})
-		termui.Handle("/sys/kbd/<left>", func(termui.Event) {
-			direction = LEFT
-		})
-		termui.Handle("/sys/kbd/<right>", func(termui.Event) {
-			direction = RIGHT
-		})
-	*/
-	/* termui.Handle("/sys/kbd", func(termui.Event) {
-		// handle all other key pressing
-	}) */
-
-	// handle a turn
-	// Register a timer whose path is /timer/XXXms and then handle it
-	// !!! Due to NewTimerCh implementations, all timers MUST have /timer/XXX path
-	/*turnStr := fmt.Sprintf("/timer/%dms", initDuration)
-	termui.Merge(turnStr, termui.NewTimerCh(initDuration*time.Millisecond))
-	/*termui.Handle(turnStr, func(e termui.Event) {
-		switch direction {
-		case UP:
-			p2.MoveBy(0, -1, arena)
-			p.MoveBy(0, -1, arena)
-		case DOWN:
-			p2.MoveBy(0, 1, arena)
-			p.MoveBy(0, 1, arena)
-		case LEFT:
-			p2.MoveBy(-1, 0, arena)
-			p.MoveBy(-1, 0, arena)
-		case RIGHT:
-			p2.MoveBy(1, 0, arena)
-			p.MoveBy(1, 0, arena)
-		}
-		g.Render()
-	}) */
-
 }
 
 func (g *Game) startTimeCounter() {
