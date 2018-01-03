@@ -60,46 +60,47 @@ func (g *Game) Start() {
 	// Renders menu game
 	// and set basic handlers
 	g.Render()
+	g.startTimeCounter() // don't put this inside a handle
+
 	termui.Handle("/sys/kbd/q", func(termui.Event) {
 		// press q to quit
 		termui.StopLoop()
 	})
 
-	g.startTimeCounter() // don't put this inside a handle
+	// game start
 	termui.Handle("/sys/kbd/<enter>", func(termui.Event) {
-		if !g.isStarted {
-			g.isStarted = false
+		if !g.isStarted { //enter works only when game is not started
+			g.isStarted = true
+			g.IsPaused = false
+			// change menu, clear the screen
+			// and start a turn
+
+			g.menu.setPauseMenu()
+			termui.Clear()
+			fmt.Printf("%v %v", g.isStarted, g.IsPaused)
+			g.handleTurn()
 		}
 	})
-}
 
-func (g *Game) begin() {
-	// change menu
-	g.IsPaused = false
-	g.menu.setPauseMenu()
-
-	// Set new handlers
-	termui.ResetHandlers()
-	termui.Handle("/sys/kbd/q", func(termui.Event) {
-		// press q to quit
-		termui.StopLoop()
-	})
 	termui.Handle("/sys/kbd/p", func(termui.Event) {
 		if !g.IsOver {
 			g.IsPaused = !g.IsPaused
 
-			if !g.IsPaused {
+			if !g.IsPaused { // clear screen before going back to game
 				termui.Clear()
 			}
 			g.Render()
 		}
 	})
 
+	// new game
 	termui.Handle("/sys/kbd/n", func(termui.Event) {
 		g = NewGame()
+		termui.Clear()
 		g.Render()
 	})
 
+	//handling movements
 	termui.Handle("/sys/kbd/<up>", func(termui.Event) {
 		g.arena.snake.changeDirection(UP)
 	})
@@ -113,7 +114,14 @@ func (g *Game) begin() {
 		g.arena.snake.changeDirection(RIGHT)
 	})
 
-	termui.Handle("/timer/turn", func(e termui.Event) {
+	// handling turn: game's core
+	termui.Handle("/timer/turn", func(termui.Event) {
+		g.handleTurn()
+	})
+}
+
+func (g *Game) handleTurn() {
+	if g.isStarted { //turn works only when game is started
 		if g.IsPaused == false { //game is not paused
 			termui.Clear()
 			// GAME TURN IS HERE
@@ -124,10 +132,7 @@ func (g *Game) begin() {
 			}
 		}
 		g.Render()
-	})
-
-	termui.Clear()
-	g.Render()
+	}
 }
 
 func initialArena() *Arena {
