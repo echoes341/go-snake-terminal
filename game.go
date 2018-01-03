@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/gizak/termui"
@@ -57,6 +58,7 @@ func (g *Game) Render() {
 
 // Start is the initial stage of the game
 func (g *Game) Start() {
+	rand.Seed(time.Now().UTC().UnixNano())
 	// Renders menu game
 	// and set basic handlers
 	g.Render()
