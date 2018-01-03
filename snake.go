@@ -47,6 +47,15 @@ func (s *snake) changeDirection(d direction) {
 	}
 }
 
+func (s *snake) hits(c Coord) bool {
+	for _, b := range s.body {
+		if b.X == c.X && b.Y == c.Y {
+			return true
+		}
+	}
+	return false
+}
+
 func (s *snake) head() Coord {
 	return s.body[len(s.body)-1]
 }

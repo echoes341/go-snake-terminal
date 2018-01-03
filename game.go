@@ -43,6 +43,9 @@ func (g *Game) Clear() {
 // Render renders the scene
 func (g *Game) Render() {
 	if g.IsPaused {
+		if g.IsOver {
+			g.menu.setOverMenu()
+		}
 		termui.Render(g.menu)
 	} else {
 		// update score text
@@ -104,7 +107,11 @@ func (g *Game) begin() {
 		if g.IsPaused == false { //game is not paused
 			termui.Clear()
 			// GAME TURN IS HERE
-			g.arena.moveSnake()
+			err := g.arena.moveSnake()
+			if err != nil {
+				g.IsOver = true
+				g.IsPaused = true
+			}
 		}
 		g.Render()
 	})

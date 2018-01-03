@@ -79,6 +79,16 @@ func (a *Arena) moveSnake() error {
 		y = y % a.Height
 	}
 
-	s.body = append(s.body[1:], Coord{X: x, Y: y})
+	c := Coord{X: x, Y: y}
+	if s.hits(c) {
+		return s.die()
+	}
+
+	if s.length > len(s.body) {
+		s.body = append(s.body, c)
+	} else {
+		s.body = append(s.body[1:], c)
+	}
+
 	return nil
 }

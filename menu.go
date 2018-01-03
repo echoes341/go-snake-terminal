@@ -65,6 +65,27 @@ func (m *Menu) setPauseMenu() {
 	}
 }
 
+// override initial menu and the set the pause text instead of initial
+func (m *Menu) setOverMenu() {
+	m.Rows = [][]string{
+		[]string{"                                        "}, //table width...
+		[]string{""},
+		[]string{" ~~~ GO SNAKE! ~~~ "},
+		[]string{""},
+		[]string{""},
+		[]string{"GAME OVER"},
+		[]string{""},
+		[]string{""},
+		[]string{"Press"},
+		[]string{""},
+		[]string{" • n to restart the game"},
+		[]string{""},
+		[]string{" • q to quit"},
+		[]string{""},
+		[]string{""},
+	}
+}
+
 // Buffer is for termui.Buffer interface
 func (m *Menu) Buffer() termui.Buffer {
 	return m.Table.Buffer()
