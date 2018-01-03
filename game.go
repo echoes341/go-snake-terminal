@@ -19,6 +19,7 @@ type Game struct {
 	score        int
 	scoreDisplay *termui.Par
 	arena        *Arena
+	isStarted    bool
 	IsOver       bool
 	IsPaused     bool
 	menu         *Menu
@@ -66,7 +67,9 @@ func (g *Game) Start() {
 
 	g.startTimeCounter() // don't put this inside a handle
 	termui.Handle("/sys/kbd/<enter>", func(termui.Event) {
-		g.begin()
+		if !g.isStarted {
+			g.isStarted = false
+		}
 	})
 }
 
@@ -82,11 +85,18 @@ func (g *Game) begin() {
 		termui.StopLoop()
 	})
 	termui.Handle("/sys/kbd/p", func(termui.Event) {
-		g.IsPaused = !g.IsPaused
+		if !g.IsOver {
+			g.IsPaused = !g.IsPaused
 
-		if !g.IsPaused {
-			termui.Clear()
+			if !g.IsPaused {
+				termui.Clear()
+			}
+			g.Render()
 		}
+	})
+
+	termui.Handle("/sys/kbd/n", func(termui.Event) {
+		g = NewGame()
 		g.Render()
 	})
 
