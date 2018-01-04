@@ -13,6 +13,7 @@ import (
 const (
 	initDuration = 400
 	minDuration  = 200
+	debug        = true
 )
 
 // Game is general game struct
@@ -57,7 +58,8 @@ func (g *Game) Render() {
 		termui.Render(g.menu)
 	} else {
 		// update score text
-		g.scoreDisplay.Text = fmt.Sprintf("~~~ GO SNAKE! ~~~\n\nScore: %d", g.score)
+		g.scoreDisplay.Text = fmt.Sprintf("~~~ GO SNAKE! ~~~\n\nScore: %d\n", g.score)
+
 		termui.Render(g.arena, g.scoreDisplay)
 	}
 }
@@ -95,6 +97,7 @@ func (g *Game) Start() {
 		}
 	})
 
+	// game pause
 	termui.Handle("/sys/kbd/p", func(termui.Event) {
 		if !g.IsOver {
 			g.IsPaused = !g.IsPaused
@@ -108,7 +111,13 @@ func (g *Game) Start() {
 
 	// new game
 	termui.Handle("/sys/kbd/n", func(termui.Event) {
-		g = NewGame()
+		g.arena = initialArena()
+		g.arena.PointsChan = g.PointsChan
+		g.menu = initialMenu()
+		g.score = 0
+		g.IsPaused = true
+		g.isStarted = false
+		g.IsOver = false
 		termui.Clear()
 		g.Render()
 	})
@@ -136,15 +145,21 @@ func (g *Game) Start() {
 func (g *Game) handleTurn() {
 	if g.isStarted { //turn works only when game is started
 		if g.IsPaused == false { //game is not paused
-			termui.Clear()
 			// GAME TURN IS HERE
 			err := g.arena.moveSnake()
 			if err != nil {
 				g.IsOver = true
 				g.IsPaused = true
+			} else {
+				termui.Clear() // clear only if game is not over
 			}
 		}
 		g.Render()
+	}
+	if debug {
+		g.scoreDisplay.Text = fmt.Sprintf("~~~ GO SNAKE! ~~~\n\nScore: %d\n", g.score)
+		g.scoreDisplay.Text += fmt.Sprintf("Status:\nisPaused: %v\nIsOver: %v\nIsStarted: %v", g.IsPaused, g.IsOver, g.isStarted)
+		termui.Render(g.scoreDisplay)
 	}
 }
 

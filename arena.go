@@ -63,7 +63,7 @@ func (a *Arena) Buffer() t.Buffer {
 
 	//print snake
 	for b := 0; b < len(a.snake.body); b++ {
-		buf.Set(a.InnerX()+a.snake.body[b].X, a.InnerY()+a.snake.body[b].Y, a.snake.cell)
+		buf.Set(a.InnerX()+a.snake.body[b].X, a.InnerY()+a.snake.body[b].Y, t.Cell{Ch: a.snake.symbol})
 	}
 	buf.Set(a.InnerX()+a.food.X, a.InnerY()+a.food.Y, t.Cell{Ch: a.food.symbol})
 

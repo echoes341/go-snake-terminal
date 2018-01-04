@@ -6,8 +6,6 @@ import (
 	"github.com/gizak/termui"
 )
 
-// Snake's direction
-
 func main() {
 	err := termui.Init()
 	if err != nil {

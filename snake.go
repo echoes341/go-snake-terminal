@@ -20,6 +20,7 @@ type snake struct {
 	body      []Coord
 	direction direction
 	length    int
+	symbol    rune
 	cell      termui.Cell
 }
 
@@ -28,9 +29,7 @@ func newSnake(d direction, b []Coord) *snake {
 		length:    len(b),
 		body:      b,
 		direction: d,
-		cell: termui.Cell{
-			Ch: '#',
-		},
+		symbol:    '#',
 	}
 }
 
