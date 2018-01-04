@@ -13,7 +13,7 @@ func main() {
 	}
 	defer termui.Close()
 
-	g := NewGame()
+	g := NewGame(false)
 	// At start the game is paused and shows the menu
 	g.Start()
 	termui.Loop() // block until StopLoop is called

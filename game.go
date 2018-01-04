@@ -13,8 +13,9 @@ import (
 const (
 	initDuration = 400
 	minDuration  = 200
-	debug        = true
 )
+
+var debug bool
 
 // Game is general game struct
 type Game struct {
@@ -34,7 +35,8 @@ type Coord struct {
 }
 
 // NewGame returns a new game
-func NewGame() *Game {
+func NewGame(dbg bool) *Game {
+	debug = dbg
 	return &Game{
 		arena:        initialArena(),
 		score:        0,
