@@ -17,8 +17,7 @@ var foods = [...]food{
 }
 
 func newFood(x, y int) *food {
-	pos := rand.Intn(4)
-	food := foods[pos]
+	food := foods[rand.Intn(4)]
 	food.X = x
 	food.Y = y
 	return &food

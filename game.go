@@ -24,6 +24,12 @@ type Game struct {
 	IsOver       bool
 	IsPaused     bool
 	menu         *Menu
+	PointsChan   chan int
+}
+
+// Coord is a simple coordinate structure
+type Coord struct {
+	X, Y int
 }
 
 // NewGame returns a new game
@@ -58,7 +64,13 @@ func (g *Game) Render() {
 
 // Start is the initial stage of the game
 func (g *Game) Start() {
+	// setting random seed
 	rand.Seed(time.Now().UTC().UnixNano())
+	g.PointsChan = make(chan int)
+	g.arena.PointsChan = g.PointsChan
+
+	go g.pointManager()
+
 	// Renders menu game
 	// and set basic handlers
 	g.Render()
@@ -79,7 +91,6 @@ func (g *Game) Start() {
 
 			g.menu.setPauseMenu()
 			termui.Clear()
-			fmt.Printf("%v %v", g.isStarted, g.IsPaused)
 			g.handleTurn()
 		}
 	})
@@ -134,6 +145,14 @@ func (g *Game) handleTurn() {
 			}
 		}
 		g.Render()
+	}
+}
+
+func (g *Game) pointManager() {
+	var points int
+	for {
+		points = <-g.PointsChan
+		g.score += points
 	}
 }
 

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"math/rand"
+
 	t "github.com/gizak/termui"
 )
 
@@ -9,7 +11,8 @@ type Arena struct {
 	t.Block
 	Width, Height int
 	snake         *snake
-	init          bool
+	food          *food
+	PointsChan    chan int
 }
 
 // DefaultCell of arena table
@@ -23,12 +26,33 @@ func NewArena(s *snake, width, height int) *Arena {
 		Block:  *t.NewBlock(),
 		Width:  width,
 		Height: height,
-		init:   true,
 		snake:  s,
 	}
 	a.Block.Width = width + 2
 	a.Block.Height = height + 2
+	a.placeFood()
 	return a
+}
+
+func (a *Arena) placeFood() {
+	var x, y int
+
+	for {
+		// find a random coordinate which
+		// doesn't belong to the snake
+
+		x = rand.Intn(a.Width)
+		y = rand.Intn(a.Height)
+
+		if !a.snake.hits(Coord{x, y}) { // do while go implementation!
+			break
+		}
+	}
+	a.food = newFood(x, y)
+}
+
+func (a *Arena) hasFood(c Coord) bool {
+	return c.X == a.food.X && c.Y == a.food.Y
 }
 
 // Buffer implements Bufferer interface.
@@ -37,19 +61,11 @@ func (a *Arena) Buffer() t.Buffer {
 	// Followind similar approach as in the termui source code
 	buf := a.Block.Buffer()
 
-	if a.init {
-		for y := 0; y < a.InnerHeight(); y++ {
-			for x := 0; x < a.InnerWidth(); x++ {
-				buf.Set(a.InnerX()+x, a.InnerY()+y, DefaultCell)
-			}
-		}
-		a.init = false
-	} else {
-		//print snake
-		for b := 0; b < a.snake.length; b++ {
-			buf.Set(a.InnerX()+a.snake.body[b].X, a.InnerY()+a.snake.body[b].Y, a.snake.cell)
-		}
+	//print snake
+	for b := 0; b < len(a.snake.body); b++ {
+		buf.Set(a.InnerX()+a.snake.body[b].X, a.InnerY()+a.snake.body[b].Y, a.snake.cell)
 	}
+	buf.Set(a.InnerX()+a.food.X, a.InnerY()+a.food.Y, t.Cell{Ch: a.food.symbol})
 
 	return buf
 }
@@ -88,6 +104,13 @@ func (a *Arena) moveSnake() error {
 		s.body = append(s.body, c)
 	} else {
 		s.body = append(s.body[1:], c)
+	}
+
+	// check if it has eaten food
+	if a.hasFood(c) {
+		a.placeFood()
+		a.snake.length++
+		a.PointsChan <- a.food.points
 	}
 
 	return nil
