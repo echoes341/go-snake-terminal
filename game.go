@@ -12,7 +12,7 @@ import (
 
 const (
 	initDuration = 400
-	minDuration  = 200
+	minDuration  = 130
 )
 
 var debug bool
@@ -55,7 +55,7 @@ func (g *Game) Clear() {
 func (g *Game) Render() {
 	if g.IsPaused {
 		if g.IsOver {
-			g.menu.setOverMenu()
+			g.menu.setOverMenu(g.score)
 		}
 		termui.Render(g.menu)
 	} else {

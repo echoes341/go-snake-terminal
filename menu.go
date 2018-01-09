@@ -1,6 +1,7 @@
 package main
 
 import "github.com/gizak/termui"
+import "fmt"
 
 // Menu is a menu of the game
 type Menu struct {
@@ -66,7 +67,7 @@ func (m *Menu) setPauseMenu() {
 }
 
 // override initial menu and the set the pause text instead of initial
-func (m *Menu) setOverMenu() {
+func (m *Menu) setOverMenu(a int) {
 	m.Rows = [][]string{
 		[]string{"                                        "}, //table width...
 		[]string{""},
@@ -74,6 +75,9 @@ func (m *Menu) setOverMenu() {
 		[]string{""},
 		[]string{""},
 		[]string{"GAME OVER"},
+		[]string{""},
+		[]string{""},
+		[]string{fmt.Sprintf("Your score %d", a)},
 		[]string{""},
 		[]string{""},
 		[]string{"Press"},
