@@ -6,3 +6,6 @@
 
 #releases folder
 releases/*
+
+# vendor
+/vendor
